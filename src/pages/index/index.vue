@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onLoad, onReachBottom } from "@dcloudio/uni-app";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 
 const PLANET_COUNT = 7;
 const isMasked = ref(true); // 遮罩层是否存在
@@ -26,7 +26,7 @@ const planetList = ref<Planet[]>([
       "https://i0.hdslb.com/bfs/article/5070bf8512ce1c308fbf2bd832d919e51402305269.png@1e_1c.webp",
     outline:
       "https://i0.hdslb.com/bfs/article/3be14c053f206c2a12880db8503eb8d61402305269.png@1e_1c.webp",
-    src: "/static/1.mp3",
+    src: "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1731720465519/1.mp3",
     volume: 0.5,
   }, // 余烬双星
   {
@@ -35,7 +35,7 @@ const planetList = ref<Planet[]>([
       "https://i0.hdslb.com/bfs/article/0efb6937678de02bdc1ba2132069bf541402305269.png@1e_1c.webp",
     outline:
       "https://i0.hdslb.com/bfs/article/9fe31d82efb736179f5336b45fc3b6591402305269.png@1e_1c.webp",
-    src: "/static/2.mp3",
+    src: "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1731720509341/2.mp3",
     volume: 0.3,
   }, // 废岩星
   {
@@ -44,7 +44,7 @@ const planetList = ref<Planet[]>([
       "https://i0.hdslb.com/bfs/article/236623c6a6f527f620aa05fca381ae581402305269.png@1e_1c.webp",
     outline:
       "https://i0.hdslb.com/bfs/article/10d5133031b805e5b4aae44d3f58e8fb1402305269.png@1e_1c.webp",
-    src: "/static/3.mp3",
+    src: "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1731720509487/3.mp3",
     volume: 0.65,
   }, // 碎空星
   {
@@ -53,7 +53,7 @@ const planetList = ref<Planet[]>([
       "https://i0.hdslb.com/bfs/article/0d0f8a1d1a599ac635d72c1a4d0ec5181402305269.png@1e_1c.webp",
     outline:
       "https://i0.hdslb.com/bfs/article/e4b078c28deb0120be29be9f024070a71402305269.png@1e_1c.webp",
-    src: "/static/4.mp3",
+    src: "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1731720509639/4.mp3",
     volume: 0.4,
   }, // 外星站
   {
@@ -62,7 +62,7 @@ const planetList = ref<Planet[]>([
       "https://i0.hdslb.com/bfs/article/6fc016f64c490e3a3c478fb5e32b2cdf1402305269.png@1e_1c.webp",
     outline:
       "https://i0.hdslb.com/bfs/article/f8511547e065b28aef4e4c19b3bd36681402305269.png@1e_1c.webp",
-    src: "/static/5.mp3",
+    src: "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1731720509774/5.mp3",
     volume: 0.7,
   }, // 量子卫星
   {
@@ -71,7 +71,7 @@ const planetList = ref<Planet[]>([
       "https://i0.hdslb.com/bfs/article/1904c9a5e5f2d0fc7d60b49bb1b73d9d1402305269.png@1e_1c.webp",
     outline:
       "https://i0.hdslb.com/bfs/article/969599e2d5c70e1568fd7e6068c5d2e71402305269.png@1e_1c.webp",
-    src: "/static/6.mp3",
+    src: "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1731721179091/6.mp3",
     volume: 0.9,
   }, // 深巨星
   {
@@ -80,19 +80,25 @@ const planetList = ref<Planet[]>([
       "https://i0.hdslb.com/bfs/article/fb3e5d5b42bbd74cf01da36a91d3f3e71402305269.png@1e_1c.webp",
     outline:
       "https://i0.hdslb.com/bfs/article/85340e698712cfaf3ccb620dd4f39d1c1402305269.png@1e_1c.webp",
-    src: "/static/7.mp3",
+    src: "https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1731721179356/7.mp3",
     volume: 0.55,
   }, // 黑棘星
 ]);
 
-// todo 把音量信息存在 uni.getStorage
-// todo 静态资源压缩
-
 // 加载所有音频
 const initializeAudio = () => {
-  for (let i = 0; i < PLANET_COUNT; i++) {
-    createAudioContext(i);
-  }
+  uni.getStorage({
+    key: "volume_key",
+    // 有上次音量记录则更新，没有缓存则使用初始音量大小
+    success: function (res) {
+      planetList.value = JSON.parse(res.data);
+    },
+    complete: function () {
+      for (let i = 0; i < PLANET_COUNT; i++) {
+        createAudioContext(i);
+      }
+    },
+  });
 };
 
 // 音频加载
@@ -137,7 +143,7 @@ const fadeVolume = (
   targetVolume: number,
   duration: number = 1000
 ) => {
-  const step = 10; // 更新频率 ms
+  const step = 20; // 更新频率 ms
   const steps = duration / step;
   let currentStep = 0;
   const startVolume = audioList[i].volume;
@@ -181,6 +187,34 @@ const switchVolume = (i: number) => {
 //   };
 //   requestAnimationFrame(updateVolume); // 初始调用
 // };
+
+function debounce<T extends (...args: any[]) => void>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+
+  return function (...args: Parameters<T>) {
+    if (timeout !== null) {
+      clearTimeout(timeout);
+    }
+
+    timeout = setTimeout(() => {
+      func(...args);
+    }, wait);
+  };
+}
+
+// 防抖写入存储，防止音量渐变时频繁写入
+const debouncedSetStorage = debounce((newVal: Planet[]) => {
+  uni.setStorage({
+    key: "volume_key",
+    data: JSON.stringify(planetList.value),
+  });
+}, 300);
+
+// 记录用户手动改变音量大小，用于下次进入应用时读取
+watch(planetList, newVal => debouncedSetStorage(newVal), { deep: true });
 
 onLoad(initializeAudio);
 onReachBottom(() => (isScrollBottom.value = true));
