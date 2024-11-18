@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onLoad, onReachBottom } from "@dcloudio/uni-app";
+import { onLoad, onShow, onHide, onReachBottom } from "@dcloudio/uni-app";
 import { ref, watch } from "vue";
 
 const PLANET_COUNT = 7;
@@ -103,6 +103,7 @@ const initializeAudio = () => {
 
 // 音频加载
 const createAudioContext = (i: number) => {
+  // todo 考虑后台播放 uni.getBackgroundAudioManager()
   const innerAudioContext = uni.createInnerAudioContext();
   innerAudioContext.src = planetList.value[i].src;
   innerAudioContext.volume = planetList.value[i].volume;
@@ -131,6 +132,15 @@ const startEnsemble = () => {
   });
 };
 
+// todo 真机无法实现音量改变
+/**
+ * 问题排查：
+ * 模拟器可以正常实现，应该是手机方面的问题
+ * 所有的值都正确传达，真机调试时，实例的 volume 也成功设置改变
+ * 最小复现：可以正常播放并修改两轨音频实例声音大小
+ */
+// todo 第一次进入小程序疑似没有声音
+// todo IOS 疑似无法播放声音
 // 进度条改变音量
 const changeVolume = (e: CustomEvent, i: number) => {
   planetList.value[i].volume = e.detail.value; // 列表音量大小，联动透明度
@@ -217,6 +227,8 @@ const debouncedSetStorage = debounce((newVal: Planet[]) => {
 watch(planetList, newVal => debouncedSetStorage(newVal), { deep: true });
 
 onLoad(initializeAudio);
+// 进入后台时重置页面
+onHide(() => uni.reLaunch({ url: "/pages/index/index" }));
 onReachBottom(() => (isScrollBottom.value = true));
 </script>
 
